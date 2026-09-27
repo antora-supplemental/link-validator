@@ -21,7 +21,8 @@
   "main": "lib/extension.js",
   "exports": {
     ".": "./lib/extension.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./registry": "./lib/registry-meta.js"
   },
   "files": [
     "lib/**/*",
