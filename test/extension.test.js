@@ -21,15 +21,45 @@ describe('link-validator extension', () => {
     assert.equal(calls.length, 0)
   })
 
-  it('register hooks sitePublished', () => {
+  it('register hooks contentClassified early and sitePublished for writes', () => {
     const ext = require('../lib/extension.js')
     const handlers = {}
+    const logs = []
     const fake = {
       on (event, fn) { handlers[event] = fn },
-      getLogger () { return { warn () {}, info () {} } },
+      getLogger () {
+        return {
+          warn () {},
+          info (...a) { logs.push(a.join(' ')) },
+        }
+      },
     }
     ext.register.call(fake, { config: {} })
+    assert.equal(typeof handlers.contentClassified, 'function')
     assert.equal(typeof handlers.sitePublished, 'function')
+  })
+
+  it('contentClassified preface logs tool start before work', async () => {
+    const ext = require('../lib/extension.js')
+    const handlers = {}
+    const logs = []
+    const fake = {
+      on (event, fn) { handlers[event] = fn },
+      getLogger () {
+        return {
+          warn () {},
+          info (...a) { logs.push(a.map(String).join(' ')) },
+        }
+      },
+    }
+    ext.register.call(fake, { config: {} })
+    await handlers.contentClassified({
+      playbook: { dir: process.cwd(), output: { dir: 'build/site' } },
+      contentCatalog: { findBy () { return [] } },
+    })
+    const joined = logs.join('\n')
+    assert.match(joined, /link-validator: starting outbound link check/)
+    assert.match(joined, /link-validator: checking 0 pages/)
   })
 
   it('core exports groupings and triage actions used by extension', () => {
@@ -54,6 +84,7 @@ describe('link-validator extension', () => {
     assert.match(js, /triggerCi/)
     assert.match(js, /activeGroupingKey/)
   })
+
   it('exports registryMeta and core buildReportHistory', () => {
     const ext = require('../lib/extension.js')
     assert.ok(ext.registryMeta)
