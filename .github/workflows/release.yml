@@ -1,0 +1,68 @@
+name: Release
+
+# Primary distribution: github:antora-supplemental/link-validator#vX.Y.Z
+# npm publish is optional later (trusted publisher / NODE_AUTH_TOKEN) — not required for Antora consumers.
+# Core dependency is already pinned as github:antora-supplemental/asciidoc-link-validator#vX.Y.Z in package.json.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver X.Y.Z to release (tag vX.Y.Z must exist on the remote)
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
+  RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - run: pnpm install
+      - run: pnpm test
+
+      - name: Verify version matches tag
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${RELEASE_VERSION#v}"
+          test "$PACKAGE_VERSION" = "$TAG_VERSION"
+
+      # Optional later — npm publish (trusted publisher / NODE_AUTH_TOKEN). Primary install path is GitHub SemVer URL.
+      # - name: Publish to npm
+      #   run: |
+      #     npm install -g npm@latest
+      #     npm publish --access public --provenance
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${RELEASE_VERSION#v}"
+          NOTES="Release v$VERSION"
+          if [ -f CHANGELOG.adoc ]; then
+            EXTRACTED=$(awk -v v="$VERSION" '
+              $0 ~ "^== " v {flag=1; next}
+              flag && /^== / {exit}
+              flag {print}' CHANGELOG.adoc)
+            if [ -n "$EXTRACTED" ]; then NOTES="$EXTRACTED"; fi
+          fi
+          gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "$NOTES" || true

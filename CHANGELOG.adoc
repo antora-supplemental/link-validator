@@ -1,0 +1,10 @@
+= Changelog
+
+== Unreleased
+
+* Nothing yet.
+
+== 0.1.0 — 2026-09-27
+
+* Initial Antora extension: `sitePublished` hook, WARN logs, `link-validator/report.json`, triage HTML, footer partial.
+* Depends on `@antora-supplemental/asciidoc-link-validator` for extract/check/suppressions/report/baseline.

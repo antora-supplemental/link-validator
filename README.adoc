@@ -1,0 +1,103 @@
+= Link Validator
+:description: Antora extension that validates outbound http(s) links, writes a triage page, and WARN-logs failures. Core CLI lives in asciidoc-link-validator.
+:page-audience: Antora hub authors who want broken-link detection in the site generate
+:page-usage-context: Register under `antora.extensions` (Facto stack includes this package)
+:page-orig-author: Ryan Johnson
+:page-last-author: Cursor agent on behalf of Ryan Johnson
+:page-last-edited: 2026-09-27
+
+ifdef::env-github[]
+++++
+<div align="center">
+
+<a href="https://github.com/antora-supplemental/link-validator/graphs/contributors"><img src="https://img.shields.io/github/contributors/antora-supplemental/link-validator?style=for-the-badge" alt="Contributors"></a>
+<a href="https://github.com/antora-supplemental/link-validator/network/members"><img src="https://img.shields.io/github/forks/antora-supplemental/link-validator?style=for-the-badge" alt="Forks"></a>
+<a href="https://github.com/antora-supplemental/link-validator/stargazers"><img src="https://img.shields.io/github/stars/antora-supplemental/link-validator?style=for-the-badge" alt="Stargazers"></a>
+<a href="https://github.com/antora-supplemental/link-validator/issues"><img src="https://img.shields.io/github/issues/antora-supplemental/link-validator?style=for-the-badge" alt="Issues"></a>
+<a href="https://github.com/antora-supplemental/link-validator/blob/main/LICENSE"><img src="https://img.shields.io/github/license/antora-supplemental/link-validator?style=for-the-badge" alt="MIT License"></a>
+
+</div>
+++++
+endif::[]
+
+**Link Validator** is the Antora-facing half of outbound link checking: on `sitePublished` it collects links from pages with `out`/`pub`, checks them via https://github.com/antora-supplemental/asciidoc-link-validator[`@antora-supplemental/asciidoc-link-validator`], WARN-logs invalid non-suppressed URLs, and writes:
+
+* `link-validator/report.json` (+ markdown)
+* A triage HTML page titled **Link Validator** (filter to current page, newly-invalid toggle, copy / mailto)
+* Footer partial `ui/partials/footer-link-validator.hbs`
+
+For CLI / non-Antora AsciiDoc trees, use the core package directly.
+
+Docs hub (when wired): https://docs.antora-supplemental.org/link-validator/[Explore the docs →]
+
+== Install
+
+Primary (GitHub SemVer URL — recommended for Antora / pnpm):
+
+[source,bash]
+----
+pnpm add -D github:antora-supplemental/link-validator#v0.1.0
+----
+
+Alternate (track main):
+
+[source,bash]
+----
+pnpm add -D github:antora-supplemental/link-validator#main
+----
+
+Optional npm (not required): `pnpm add -D @antora-supplemental/link-validator` if/when published later.
+
+Consumer topic: `link-validator`.
+
+== Playbook
+
+[source,yaml]
+----
+antora:
+  extensions:
+    - require: '@antora-supplemental/link-validator'
+      concurrency: 8
+      timeoutMs: 10000
+      softFail403: true
+      failLevel: none
+      reportEmail: support@devcentr.org
+      suppressionsFile: .antora-link-suppressions.yml
+      baselinePath: .link-baseline.json
+      checkImages: true
+----
+
+After generate, open `/link-validator/` on the site.
+
+== Footer wiring
+
+Copy `ui/partials/footer-link-validator.hbs` into your UI bundle (or supplemental UI) and include it from `footer-content.hbs`:
+
+[source,hbs]
+----
+{{> footer-link-validator}}
+----
+
+== Facto
+
+Included in the Facto stack fragment (`@antora-supplemental/facto-stack`) alongside page-edit and friends.
+
+== CLI / CI
+
+Multi-provider CI templates ship with the **core** package (`asciidoc-link-validator`). This Antora package runs CI tests on push/PR and creates a GitHub Release on version tags (primary distribution: GitHub SemVer URL pin) (see `.github/workflows/`).
+
+Optional write-back (baseline commit / issue upsert): `.github/workflows/link-validator-writeback.yml`.
+
+== Related
+
+* link:antora-registry.md[]
+* https://github.com/antora-supplemental/asciidoc-link-validator[asciidoc-link-validator]
+* https://github.com/antora-supplemental/antora-facto[facto-stack]
+
+== License
+
+MIT — see link:LICENSE[].
+
+== Contact
+
+https://github.com/AMDphreak[Ryan Johnson] · support@devcentr.org
