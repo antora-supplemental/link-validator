@@ -2,6 +2,7 @@
 
 == Unreleased
 
+* CI extras stubs: PR preview comment workflow, GitLab JUnit + glab mr note fragment.
 * Triage UI: **group by** destination / source page / status / host (auto default from core groupings).
 * Shared triage actions: CI **Check now** (public `dispatchUrl` / proxy + poll), mailto (encoded), Copy report.
 * Playbook knobs: `reportEmail`, `ciTrigger`, `groupingDefault`.

@@ -1,0 +1,19 @@
+# GitLab CI fragment: run asciidoc-link-validator and expose JUnit + MR note stub.
+# Include from .gitlab-ci.yml and adjust paths.
+#
+# link_validator:
+#   stage: test
+#   image: node:20
+#   script:
+#     - npx --yes github:antora-supplemental/asciidoc-link-validator#main --root . --out link-report.json --format json || true
+#     - node ci/junit-from-report.js link-report.json > link-validator.junit.xml
+#     - |
+#       if command -v glab >/dev/null && [ -n "$CI_MERGE_REQUEST_IID" ]; then
+#         glab mr note "$CI_MERGE_REQUEST_IID" -m "$(node -e "const r=require('./link-report.json');console.log('Link Validator invalid='+(r.summary&&r.summary.invalid))")" || true
+#       fi
+#   artifacts:
+#     when: always
+#     reports:
+#       junit: link-validator.junit.xml
+#     paths:
+#       - link-report.json
