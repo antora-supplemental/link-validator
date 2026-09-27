@@ -65,9 +65,32 @@ antora:
       suppressionsFile: .antora-link-suppressions.yml
       baselinePath: .link-baseline.json
       checkImages: true
+      # Optional override; omit for auto (destination when host clusters dominate)
+      # groupingDefault: byDestination
+      ciTrigger:
+        enabled: true
+        provider: github
+        # Public workflow-dispatch URL or thin proxy — NEVER put a token in the playbook/HTML
+        dispatchUrl: https://example.com/link-validator-proxy/dispatch
+        statusUrl: https://example.com/link-validator-proxy/status
+        ref: main
+        label: Check now (CI)
+        pollIntervalMs: 5000
 ----
 
 After generate, open `/link-validator/` on the site.
+
+=== Triage UI
+
+* **Group by** destination URL, source page, status, or host (Auto uses core default heuristic).
+* **Check now (CI)** when `ciTrigger.enabled` + `dispatchUrl` are set; polls for an updated `report.json`.
+* **Email report** (percent-encoded mailto) and **Copy report** always available as fallback.
+* Prior report history lists entries from `meta.reportHistory` when a write-back/proxy provides them.
+
+=== Security note (CI trigger)
+
+The published site must store only a **public** dispatch URL or a **thin proxy** that holds the GitHub/GitLab token server-side. Do not embed PATs or `GITHUB_TOKEN` in static HTML or the playbook fragment shipped to browsers.
+
 
 == Footer wiring
 

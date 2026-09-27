@@ -1,14 +1,24 @@
-# Optional write-back: commit baseline on default branch and/or open/update an issue.
-# Uses the core CLI from @antora-supplemental/asciidoc-link-validator.
-# Commented steps stay off so a naive copy remains read-only.
+# Link Validator write-back + sticky "Broken links" issue.
+# Invoked by workflow_dispatch (from triage "Check now" via a thin proxy, or manually).
+# Site HTML must NEVER hold a GitHub token — proxy or Actions secrets only.
 name: Link Validator write-back
 
 on:
   workflow_dispatch:
+    inputs:
+      ref_name:
+        description: Branch to validate
+        required: false
+        default: main
+  # Optional: also run on schedule for sticky-issue freshness
+  # schedule:
+  #   - cron: '0 6 * * 1'
 
 permissions:
   contents: write
   issues: write
+  checks: write
+  pull-requests: write
 
 jobs:
   writeback:
@@ -20,38 +30,146 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run core validator (write baseline)
+      - name: Run core validator
+        id: validate
         run: |
-          # After publish:
-          #   pnpm dlx @antora-supplemental/asciidoc-link-validator --root . --baseline .link-baseline.json --write-baseline --out link-report.json
-          npx --yes github:antora-supplemental/asciidoc-link-validator#main --root . --baseline .link-baseline.json --write-baseline --out link-report.json
+          npx --yes github:antora-supplemental/asciidoc-link-validator#main \
+            --root . \
+            --baseline .link-baseline.json \
+            --write-baseline \
+            --out link-report.json \
+            --format json || true
+          if [ -f link-report.json ]; then
+            echo "has_report=true" >> "$GITHUB_OUTPUT"
+            node -e "const r=require('./link-report.json'); console.log('invalid='+(r.summary&&r.summary.invalid))"
+          else
+            echo "has_report=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      # - name: Commit baseline on default branch
-      #   if: github.ref == 'refs/heads/main'
-      #   run: |
-      #     git config user.name 'github-actions[bot]'
-      #     git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-      #     git add .link-baseline.json
-      #     git diff --cached --quiet || git commit -m 'chore: update link-validator baseline'
-      #     git push
+      - name: Upload report artifact
+        if: steps.validate.outputs.has_report == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: link-validator-report
+          path: |
+            link-report.json
+            .link-baseline.json
+          retention-days: 30
 
-      # - name: Create or update issue from report
-      #   uses: actions/github-script@v7
-      #   with:
-      #     script: |
-      #       const fs = require('fs')
-      #       const report = JSON.parse(fs.readFileSync('link-report.json', 'utf8'))
-      #       const title = 'Link Validator: ' + report.summary.invalid + ' invalid link(s)'
-      #       const body = '```json\n' + JSON.stringify(report.summary, null, 2) + '\n```'
-      #       const issues = await github.rest.issues.listForRepo({
-      #         owner: context.repo.owner, repo: context.repo.repo, labels: 'link-validator', state: 'open'
-      #       })
-      #       if (issues.data.length) {
-      #         await github.rest.issues.update({
-      #           owner: context.repo.owner, repo: context.repo.repo, issue_number: issues.data[0].number, title, body
-      #         })
-      #       } else if (report.summary.invalid > 0) {
-      #         await github.rest.issues.create({
-      #           owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['link-validator']
-      #         })
-      #       }
+      - name: Commit baseline on default branch
+        if: steps.validate.outputs.has_report == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .link-baseline.json || true
+          if git diff --cached --quiet; then
+            echo "No baseline changes"
+          else
+            git commit -m 'chore: update link-validator baseline'
+            git push
+          fi
+
+      - name: Sticky Broken links issue + comment
+        if: steps.validate.outputs.has_report == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const report = JSON.parse(fs.readFileSync('link-report.json', 'utf8'))
+            const invalid = report.summary?.invalid ?? 0
+            const title = 'Broken links'
+            const label = 'link-validator'
+            const body = [
+              '<!-- link-validator-sticky -->',
+              `# Broken links (${invalid})`,
+              '',
+              `Generated: ${report.generatedAt}`,
+              `Grouping default: ${report.summary?.groupingDefault || 'n/a'}`,
+              '',
+              'Summary:',
+              '```json',
+              JSON.stringify(report.summary, null, 2),
+              '```',
+              '',
+              invalid
+                ? 'Top invalid:\n' + (report.invalid || []).slice(0, 30).map(r =>
+                    `- ${r.url} → ${r.classification}${r.status != null ? ' ('+r.status+')' : ''}`
+                  ).join('\n')
+                : '_No invalid links._',
+              '',
+              'Triage: open `/link-validator/` on the published site (mailto fallback: support@devcentr.org).',
+            ].join('\n')
+
+            // Ensure label
+            try {
+              await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: label })
+            } catch {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner, repo: context.repo.repo, name: label, color: 'B60205',
+                description: 'Outbound link validation'
+              })
+            }
+
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, labels: label, state: 'open', per_page: 10
+            })
+            let issue = issues.data.find(i => i.title === title) || issues.data[0]
+            if (!issue && invalid > 0) {
+              issue = (await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo, title, body, labels: [label]
+              })).data
+            } else if (issue) {
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, title, body,
+                state: invalid > 0 ? 'open' : 'open'
+              })
+            }
+
+            if (issue) {
+              // Sticky comment marker
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, per_page: 100
+              })
+              const marker = '<!-- link-validator-sticky-comment -->'
+              const commentBody = marker + '\n' + body
+              const existing = comments.data.find(c => c.body && c.body.includes(marker))
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body: commentBody
+                })
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body: commentBody
+                })
+              }
+            }
+
+      # Optional Check Run annotations (best-effort; enable when report present)
+      - name: Publish Check Run annotations
+        if: steps.validate.outputs.has_report == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const report = JSON.parse(fs.readFileSync('link-report.json', 'utf8'))
+            const anns = (report.invalid || []).slice(0, 50).map(r => ({
+              path: (r.sourceMap && r.sourceMap.path) || (r.sources && r.sources[0]) || 'README.adoc',
+              start_line: 1,
+              end_line: 1,
+              annotation_level: 'warning',
+              message: `${r.url} → ${r.classification}${r.status != null ? ' ('+r.status+')' : ''}`,
+              title: 'Invalid outbound link'
+            }))
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Link Validator',
+              head_sha: context.sha,
+              status: 'completed',
+              conclusion: (report.summary?.invalid || 0) > 0 ? 'neutral' : 'success',
+              output: {
+                title: `Link Validator: ${report.summary?.invalid || 0} invalid`,
+                summary: 'Outbound link check (see artifact link-validator-report)',
+                annotations: anns
+              }
+            })

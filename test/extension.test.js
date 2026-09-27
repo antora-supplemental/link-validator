@@ -31,4 +31,27 @@ describe('link-validator extension', () => {
     ext.register.call(fake, { config: {} })
     assert.equal(typeof handlers.sitePublished, 'function')
   })
+
+  it('core exports groupings and triage actions used by extension', () => {
+    const core = require('@antora-supplemental/asciidoc-link-validator')
+    assert.equal(typeof core.buildGroupings, 'function')
+    assert.equal(typeof core.normalizeCiTrigger, 'function')
+    assert.equal(typeof core.buildTriageHtml, 'function')
+    const html = core.buildTriageHtml({
+      ciTrigger: { enabled: true, dispatchUrl: 'https://proxy.example/dispatch' },
+    })
+    assert.match(html, /lv-group-by/)
+    assert.match(html, /lv-ci-trigger/)
+  })
+
+  it('ui assets exist', () => {
+    const fs = require('node:fs')
+    const ospath = require('node:path')
+    assert.ok(fs.existsSync(ospath.join(__dirname, '..', 'ui', 'js', 'link-validator.js')))
+    assert.ok(fs.existsSync(ospath.join(__dirname, '..', 'ui', 'css', 'link-validator.css')))
+    const js = fs.readFileSync(ospath.join(__dirname, '..', 'ui', 'js', 'link-validator.js'), 'utf8')
+    assert.match(js, /encodeMailto/)
+    assert.match(js, /triggerCi/)
+    assert.match(js, /activeGroupingKey/)
+  })
 })

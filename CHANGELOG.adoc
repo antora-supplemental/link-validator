@@ -2,7 +2,12 @@
 
 == Unreleased
 
-* Nothing yet.
+* Triage UI: **group by** destination / source page / status / host (auto default from core groupings).
+* Shared triage actions: CI **Check now** (public `dispatchUrl` / proxy + poll), mailto (encoded), Copy report.
+* Playbook knobs: `reportEmail`, `ciTrigger`, `groupingDefault`.
+* Write-back workflow: artifact upload, baseline commit, sticky **Broken links** issue + comment, Check Run annotations.
+* `antora-registry.md`: purpose / layer / lifecycle metadata for extension-lister.
+* Findings carry lightweight `sourceMap` / `sourceMaps` when catalog src is available.
 
 == 0.1.0 — 2026-09-27
 
