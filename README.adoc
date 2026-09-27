@@ -36,7 +36,7 @@ Primary (GitHub SemVer URL — recommended for Antora / pnpm):
 
 [source,bash]
 ----
-pnpm add -D github:antora-supplemental/link-validator#v0.1.0
+pnpm add -D github:antora-supplemental/link-validator#v0.2.0
 ----
 
 Alternate (track main):
@@ -85,7 +85,7 @@ After generate, open `/link-validator/` on the site.
 * **Group by** destination URL, source page, status, or host (Auto uses core default heuristic).
 * **Check now (CI)** when `ciTrigger.enabled` + `dispatchUrl` are set; polls for an updated `report.json`.
 * **Email report** (percent-encoded mailto) and **Copy report** always available as fallback.
-* Prior report history lists entries from `meta.reportHistory` when a write-back/proxy provides them.
+* Prior report history lists entries from `meta.reportHistory`. The extension **auto-populates** this array from archived `report-*.json` files on each site publish (`reportHistoryLimit`, default 20) — no manual edits.
 
 === Security note (CI trigger)
 
@@ -110,6 +110,17 @@ Included in the Facto stack fragment (`@antora-supplemental/facto-stack`) alongs
 Multi-provider CI templates ship with the **core** package (`asciidoc-link-validator`). This Antora package runs CI tests on push/PR and creates a GitHub Release on version tags (primary distribution: GitHub SemVer URL pin) (see `.github/workflows/`).
 
 Optional write-back (baseline commit / issue upsert): `.github/workflows/link-validator-writeback.yml`.
+
+== Thin CI dispatch proxy
+
+The triage **Check now (CI)** button must call a *public* URL. Ship a thin proxy that holds the GitHub token server-side:
+
+* Example (Express + Cloudflare Workers): https://github.com/antora-supplemental/asciidoc-link-validator/tree/main/examples/dispatch-proxy[`asciidoc-link-validator/examples/dispatch-proxy`]
+* Set playbook `ciTrigger.dispatchUrl` / `statusUrl` to that proxy's `/dispatch` and `/status`.
+* **Never** put `GITHUB_TOKEN` in static HTML.
+
+Env vars and wiring: see the proxy README in that folder.
+
 
 == Related
 

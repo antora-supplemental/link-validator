@@ -54,4 +54,11 @@ describe('link-validator extension', () => {
     assert.match(js, /triggerCi/)
     assert.match(js, /activeGroupingKey/)
   })
+  it('exports registryMeta and core buildReportHistory', () => {
+    const ext = require('../lib/extension.js')
+    assert.ok(ext.registryMeta)
+    assert.equal(ext.registryMeta.purpose, 'link-validation')
+    const core = require('@antora-supplemental/asciidoc-link-validator')
+    assert.equal(typeof core.buildReportHistory, 'function')
+  })
 })

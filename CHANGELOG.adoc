@@ -2,6 +2,12 @@
 
 == Unreleased
 
+== 0.2.0 — 2026-09-27
+
+* Auto-populate `meta.reportHistory` from archived `report-*.json` when writing the triage report (UI list works without manual edits).
+* Playbook knob: `reportHistoryLimit` (default 20).
+* Pin core dependency to `github:antora-supplemental/asciidoc-link-validator#v0.2.0`.
+* Export `registryMeta` on the main module (in addition to `./registry`) for extension-lister discovery.
 * CI extras stubs: PR preview comment workflow, GitLab JUnit + glab mr note fragment.
 * Triage UI: **group by** destination / source page / status / host (auto default from core groupings).
 * Shared triage actions: CI **Check now** (public `dispatchUrl` / proxy + poll), mailto (encoded), Copy report.

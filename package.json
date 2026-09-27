@@ -1,6 +1,6 @@
 {
   "name": "@antora-supplemental/link-validator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Antora extension: site triage UI + WARN logs for outbound link validation (uses asciidoc-link-validator)",
   "license": "MIT",
   "author": "Ryan Johnson (https://github.com/AMDphreak)",
@@ -39,7 +39,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@antora-supplemental/asciidoc-link-validator": "github:antora-supplemental/asciidoc-link-validator#main"
+    "@antora-supplemental/asciidoc-link-validator": "github:antora-supplemental/asciidoc-link-validator#v0.2.0"
   },
   "peerDependencies": {
     "@antora/site-generator": ">=3.1.0"
