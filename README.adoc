@@ -20,7 +20,7 @@ ifdef::env-github[]
 ++++
 endif::[]
 
-**Link Validator** is the Antora-facing half of outbound link checking: on `sitePublished` it collects links from pages with `out`/`pub`, checks them via https://github.com/antora-supplemental/asciidoc-link-validator[`@antora-supplemental/asciidoc-link-validator`], WARN-logs invalid non-suppressed URLs, and writes:
+**Link Validator** is the Antora-facing half of outbound link checking: on `contentClassified` it collects links from classified pages, checks them via https://github.com/antora-supplemental/asciidoc-link-validator[`@antora-supplemental/asciidoc-link-validator`] (rate limits, cache, surgical invalidation), logs one summary line (not per-link 429 noise), and on `sitePublished` writes:
 
 * `link-validator/report.json` (+ markdown)
 * A triage HTML page titled **Link Validator** (filter to current page, newly-invalid toggle, copy / mailto)
@@ -36,7 +36,7 @@ Primary (GitHub SemVer URL — recommended for Antora / pnpm):
 
 [source,bash]
 ----
-pnpm add -D github:antora-supplemental/link-validator#v0.2.0
+pnpm add -D github:antora-supplemental/link-validator#v0.2.2
 ----
 
 Alternate (track main):
@@ -65,6 +65,11 @@ antora:
       suppressionsFile: .antora-link-suppressions.yml
       baselinePath: .link-baseline.json
       checkImages: true
+      cacheEnabled: true
+      cachePath: .link-check-cache.json
+      # invalidateSources / invalidateUrls — or env LINK_VALIDATOR_INVALIDATE_*
+      # CI: pass GITHUB_TOKEN in env (not here)
+      # Nightly full refresh: cacheBypass: true or LINK_VALIDATOR_CACHE_BYPASS=true
       # Optional override; omit for auto (destination when host clusters dominate)
       # groupingDefault: byDestination
       ciTrigger:

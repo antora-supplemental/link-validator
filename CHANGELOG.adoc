@@ -2,6 +2,12 @@
 
 == Unreleased
 
+== 0.2.2 — 2026-10-17
+
+* Quiet CI: removed per-link `invalid link …` warn flood; one summary line (`invalid`, `rate-limited`, `cached`, `deferred`).
+* Playbook/env: cache, surgical invalidation, `LINK_VALIDATOR_CACHE_BYPASS`, `GITHUB_TOKEN` via CI env (not playbook).
+* Pin core `asciidoc-link-validator#v0.2.2`.
+
 == 0.2.0 — 2026-09-27
 
 * Auto-populate `meta.reportHistory` from archived `report-*.json` when writing the triage report (UI list works without manual edits).
