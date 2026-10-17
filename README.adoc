@@ -110,6 +110,16 @@ Copy `ui/partials/footer-link-validator.hbs` into your UI bundle (or supplementa
 
 Included in the Facto stack fragment (`@antora-supplemental/facto-stack`) alongside page-edit and friends.
 
+== Multi-repo hub dispatch (recommended)
+
+Aggregated sites should rebuild when a content source changes outbound links — without polling and without embedding tokens in the playbook.
+
+* **Hub (subscriber):** listen for `repository_dispatch` type `link-cache-invalidate` on the playbook repo; map payload `sources` / `urls` to env `LINK_VALIDATOR_INVALIDATE_SOURCES` / `LINK_VALIDATOR_INVALIDATE_URLS` on the Antora build step (v0.2.2+).
+* **Sources (callers):** after `docs/**` changes, dispatch into the hub with org secret `DOCS_HUB_DISPATCH_TOKEN` (Dev-Centr: reusable workflow `dev-centr/agent-rules/.github/workflows/docs-hub-link-cache-invalidate-dispatch.yml`).
+* **Reference:** https://docs.devcentr.org/docs-site/notify-docs-hub-link-changes.html[Dev-Centr hub how-to] and https://docs.antora-supplemental.org/site-rebuild/[site rebuild architecture].
+
+Same star pattern as `docs-source-updated` / `extension-updated`; use `link-cache-invalidate` when you want surgical cache bypass plus deploy.
+
 == CLI / CI
 
 Multi-provider CI templates ship with the **core** package (`asciidoc-link-validator`). This Antora package runs CI tests on push/PR and creates a GitHub Release on version tags (primary distribution: GitHub SemVer URL pin) (see `.github/workflows/`).

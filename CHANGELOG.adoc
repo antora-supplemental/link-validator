@@ -2,6 +2,8 @@
 
 == Unreleased
 
+* README: multi-repo hub `link-cache-invalidate` dispatch pattern; pointer to Dev-Centr hub how-to and reusable workflow.
+
 == 0.2.2 — 2026-10-17
 
 * Quiet CI: removed per-link `invalid link …` warn flood; one summary line (`invalid`, `rate-limited`, `cached`, `deferred`).
