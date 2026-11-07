@@ -9,17 +9,17 @@ importers:
   .:
     dependencies:
       '@antora-supplemental/asciidoc-link-validator':
-        specifier: github:antora-supplemental/asciidoc-link-validator#v0.2.2
-        version: https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/41555a7b11d5c4eb12c730ab61192352ccf547fd
+        specifier: github:antora-supplemental/asciidoc-link-validator#v0.2.3
+        version: https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/a956e9f4cb99c9011b5f4f617fc558f1d2d23c32
       '@antora/site-generator':
         specifier: '>=3.1.0'
         version: 3.2.0
 
 packages:
 
-  '@antora-supplemental/asciidoc-link-validator@https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/41555a7b11d5c4eb12c730ab61192352ccf547fd':
-    resolution: {tarball: https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/41555a7b11d5c4eb12c730ab61192352ccf547fd}
-    version: 0.2.2
+  '@antora-supplemental/asciidoc-link-validator@https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/a956e9f4cb99c9011b5f4f617fc558f1d2d23c32':
+    resolution: {tarball: https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/a956e9f4cb99c9011b5f4f617fc558f1d2d23c32}
+    version: 0.2.3
     engines: {node: '>=18'}
     hasBin: true
 
@@ -569,7 +569,7 @@ packages:
 
 snapshots:
 
-  '@antora-supplemental/asciidoc-link-validator@https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/41555a7b11d5c4eb12c730ab61192352ccf547fd':
+  '@antora-supplemental/asciidoc-link-validator@https://codeload.github.com/antora-supplemental/asciidoc-link-validator/tar.gz/a956e9f4cb99c9011b5f4f617fc558f1d2d23c32':
     dependencies:
       js-yaml: 4.3.2
 

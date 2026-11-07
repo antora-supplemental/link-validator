@@ -1,5 +1,11 @@
 = Changelog
 
+== 2026-11-07
+
+=== Confirm missing pages with GET
+
+* Link Validator 0.2.3 uses asciidoc-link-validator 0.2.3, which confirms HEAD 404 responses with GET to avoid reporting valid Marketplace and installer URLs as broken.
+
 == Unreleased
 
 * README: multi-repo hub `link-cache-invalidate` dispatch pattern; pointer to Dev-Centr hub how-to and reusable workflow.
